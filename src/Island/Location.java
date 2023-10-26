@@ -1,34 +1,16 @@
 package Island;
 
-import Organizm.Animals.Animal;
-import Organizm.Animals.Herbivore;
-import Organizm.Animals.HerbivoreAnimals;
+import Organizm.Animals.*;
+import Organizm.Plants.Plant;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-
+import java.util.*;
 
 public class Location {
-    private Random random = new Random();
-
-    // ...
-    public int getRandomXCoordinate() {
-        return random.nextInt(width); // Генерувати випадкову координату X в межах ширини локації
-    }
-
-    public int getRandomYCoordinate() {
-        return random.nextInt(height); // Генерувати випадкову координату Y в межах висоти локації
-    }
-    private List<Animal> animalsInLocation;
+    private final Random random = new Random();
+    final List<Animal> animalsInLocation = new ArrayList<>();
     private static int width;
     private static int height;
-
-    public Location(int width, int height) {
-        this.width = width;
-        this.height = height;
-        animalsInLocation = new ArrayList<>();
-    }
+    Location location;
 
     public static int getWidth() {
         return width;
@@ -38,66 +20,129 @@ public class Location {
         return height;
     }
 
+    public int getRandomXCoordinate() {
+        return random.nextInt(width);
+    }
+
+    public int getRandomYCoordinate() {
+        return random.nextInt(height);
+    }
+
+    public Location(int width, int height) {
+        Location.width = width;
+        Location.height = height;
+    }
+    public void removeAnimal(Animal animal) {
+        animalsInLocation.remove(animal);
+    }
+
     public void addAnimal(Animal animal) {
         animalsInLocation.add(animal);
     }
 
-
     public void interact() {
-        HerbivoreAnimals.Duck duck = null;
-
+        List<Animal> newAnimals = new ArrayList<>();
         for (Animal animal : animalsInLocation) {
-            if (animal instanceof HerbivoreAnimals.Duck) {
-                duck = (HerbivoreAnimals.Duck) animal;
-                List<HerbivoreAnimals.Caterpillar> availableCaterpillars = findAvailableCaterpillars();
-                for (HerbivoreAnimals.Caterpillar c : availableCaterpillars) {
-                    if (duck.canEatCaterpillar(c)) {
-                        duck.eatCaterpillar(c);
-                        System.out.println(duck.getName() + " з'їв " + c.getName());
-                    }
-                }
-            }
-        }
-
-        // Інша логіка і репродукція
-
-        for (int i = 0; i < animalsInLocation.size(); i++) {
-            Animal animal = animalsInLocation.get(i);
-            if (animal.canReproduce()) {
-                int animalsOfType = 0;
-                Animal partner = null;
-                for (int j = 0; j < animalsInLocation.size(); j++) {
-                    if (j != i) {
-                        partner = animalsInLocation.get(j);
-                        if (partner.getClass() == animal.getClass()) {
-                            animalsOfType++;
+            if (animal instanceof HerbivoreAnimals.Mouse) {
+                HerbivoreAnimals.Mouse mouse = (HerbivoreAnimals.Mouse) animal;
+                for (Animal caterpillar : animalsInLocation) {
+                    if (caterpillar instanceof HerbivoreAnimals.Caterpillar) {
+                        HerbivoreAnimals.Caterpillar c = (HerbivoreAnimals.Caterpillar) caterpillar;
+                        if (mouse.getX() == c.getX() && mouse.getY() == c.getY()) {
+                            if (random.nextDouble() <= 0.9 && mouse.canEatCaterpillar(c)) {
+                                mouse.eatCaterpillar(c);
+                                System.out.println(HerbivoreAnimals.Mouse.getName() + " з'їв " + HerbivoreAnimals.Caterpillar.getName());
+                            }
                         }
                     }
                 }
-                if (animalsOfType < ((HerbivoreAnimals) animal).getMaxPopulation()) {
-                    Animal newAnimal = animal.reproduce(partner);
-                    if (newAnimal != null) {
-                        animalsInLocation.add(newAnimal);
-                        System.out.println("Новий " + newAnimal.getName() + " народився.");
+            }
+        }
+
+        // Логіка для кожної ділянки
+
+        // Логіка розмноження для кожної ділянки
+
+        for (Animal animal : animalsInLocation) {
+            if (animal instanceof HerbivoreAnimals.Horse) {
+                HerbivoreAnimals.Horse horse = (HerbivoreAnimals.Horse) animal;
+
+                // Перевірка, чи конь може розмножитися
+                if (!horse.hasReproduce()) {
+                    boolean hasSuccessfullyReproduced = false;
+                    int parentX = horse.getX();
+                    int parentY = horse.getY();
+
+                    for (Animal otherAnimal : animalsInLocation) {
+                        if (otherAnimal instanceof HerbivoreAnimals.Horse && otherAnimal != horse) {
+                            HerbivoreAnimals.Horse otherHorse = (HerbivoreAnimals.Horse) otherAnimal;
+
+                            if (!otherHorse.hasReproduce()) {
+                                if (horse.getX() == otherHorse.getX() && horse.getY() == otherHorse.getY()) {
+                                    HerbivoreAnimals.Horse newHorse = horse.reproduce(otherHorse);
+                                    if (newHorse != null) {
+                                        newHorse.setX(parentX);
+                                        newHorse.setY(parentY);
+                                        newAnimals.add(newHorse);
+                                        hasSuccessfullyReproduced = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (hasSuccessfullyReproduced) {
+                        horse.setReproduced(true);
+                        System.out.println("Новий " + "кінь" + " народився на ділянці " +
+                                " на координатах X=" + parentX + ", Y=" + parentY);
                     }
                 }
             }
         }
-    }
+        for (Animal animal : animalsInLocation) {
+            if (animal instanceof HerbivoreAnimals.Mouse) {
+                HerbivoreAnimals.Mouse mouse = (HerbivoreAnimals.Mouse) animal;
 
+                // Перевірка, чи конь може розмножитися
+                if (!mouse.hasReproduce()) {
+                    boolean hasSuccessfullyReproduced = false;
+                    int parentX = mouse.getX();
+                    int parentY = mouse.getY();
 
-    public List<HerbivoreAnimals.Caterpillar> findAvailableCaterpillars() {
-            // Логіка знаходження доступних гусенят для качки
-            List<HerbivoreAnimals.Caterpillar> availableCaterpillars = new ArrayList<>();
-            // Додайте свою логіку тут
-            return availableCaterpillars;
+                    for (Animal otherAnimal : animalsInLocation) {
+                        if (otherAnimal instanceof HerbivoreAnimals.Mouse && otherAnimal != mouse) {
+                            HerbivoreAnimals.Mouse otherMouse = (HerbivoreAnimals.Mouse) otherAnimal;
+
+                            if (!otherMouse.hasReproduce()) {
+                                if (mouse.getX() == otherMouse.getX() && mouse.getY() == otherMouse.getY()) {
+                                    HerbivoreAnimals.Mouse newMouse = mouse.reproduce(otherMouse);
+                                    if (newMouse != null) {
+                                        newMouse.setX(parentX);
+                                        newMouse.setY(parentY);
+                                        newAnimals.add(newMouse);
+                                        hasSuccessfullyReproduced = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (hasSuccessfullyReproduced) {
+                        mouse.setReproduced(true);
+                        System.out.println("Нова " + "миша" + " народилася на ділянці " +
+                                " на координатах X=" + parentX + ", Y=" + parentY);
+                    }
+                }
+            }
         }
 
-
-    private boolean canEatCaterpillar(HerbivoreAnimals.Caterpillar caterpillar) {
-        // Додайте вашу логіку перевірки тут
-        return true; // Приклад, якщо тварина завжди може їсти гусінь
+        // Інша логіка розмноження для інших підкласів
+        animalsInLocation.addAll(newAnimals);
     }
 
+
 }
+
+// Код для класу Animal та інших класів HerbivoreAnimals залишається таким же
+
 
