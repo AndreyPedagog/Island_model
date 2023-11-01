@@ -3,78 +3,55 @@ package Organizm.Animals;
 import Island.Location;
 import Organizm.Plants.Plant;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.text.DecimalFormat;
 import java.util.Random;
 
 public abstract class HerbivoreAnimals extends Animal implements Herbivore {
-
-    private int count;
     private double foodRequired;
-    private int maxPopulation;
+
     public HerbivoreAnimals(String name, double weight, int maxPopulation, int maxSpeed, double foodRequired, int maxSteps) {
         super(name, weight, maxPopulation, maxSpeed, foodRequired, maxSteps);
         this.foodRequired = foodRequired;
-        this.maxPopulation = maxPopulation;
-        count = 1;
-
     }
-
-    public int getMaxPopulation() {
-        return maxPopulation;
-    }
-
-    @Override
-    public double getWeight() {
-        return super.getWeight();
-    }
-
     @Override
     public void eatPlant(Plant plant) {
 
     }
-
     @Override
     public boolean canEatCaterpillar(Caterpillar caterpillar) {
         return false;
     }
-
-
-
-
     public double getFoodRequired() {
         return foodRequired;
     }
 
 
 
-    public static class Horse extends HerbivoreAnimals implements Runnable{
+    public static class Horse extends HerbivoreAnimals implements Runnable {
 
+        private static String name;
         private boolean hasReproduced = false;
-        private final double foodRequired;
-        private final double initialWeight;
-        private int maxPopulation;
+        private static double initialWeight;
+        private double weight;
+        private int x;
+        private int y;
+        private boolean eaten = false;
 
         public Horse(String name, double weight, int maxPopulation, int maxSpeed, double foodRequired, int maxSteps) {
             super(name, weight, maxPopulation, maxSpeed, foodRequired, maxSteps);
-            weightLossRate = 5;
-            this.foodRequired = foodRequired;
+            weightLossRate = 10;
             initialWeight = weight;
-            this.maxPopulation = maxPopulation;
+            this.weight = weight;
+            this.name = name;
         }
-        @Override
-        public void run() {
-            while (weight > 0) { // Цикл працює, поки вага більше нуля
-                moveRandom(); // Виклик методу для випадкового переміщення
-                weight -= weightLossRate; // Втрата ваги на кожному такті
-                // Інша логіка тварини
-            }
-            die(); // Якщо вага стала нульовою або від'ємною, тварина помирає
+
+        public static String getName() {
+            return name;
         }
-        public void die() {
-            System.out.println(HerbivoreAnimals.getName() + " помер.");
-            // Додаткова логіка, яку ви хочете виконати при смерті тварини
+        public double getWeight() {
+            return weight;
         }
+
         public boolean hasReproduce() {
             return hasReproduced;
         }
@@ -83,67 +60,58 @@ public abstract class HerbivoreAnimals extends Animal implements Herbivore {
             this.hasReproduced = hasReproduced;
         }
 
-
-        @Override
-        public void eatPlant(Plant plant) {
-            if (plant != null) {
-                double foodRequired = getFoodRequired();
-                double currentPlantWeight = plant.getWeight();
-
-                // Перевірка, чи тварина може з'їсти доступну кількість трави без перевищення своєї ваги
-                double maxFoodToEat = initialWeight - weight;
-                if (maxFoodToEat >= foodRequired) {
-                    if (currentPlantWeight >= foodRequired) {
-                        plant.getEaten(this, plant);
-                        weight += foodRequired; // Збільшення ваги відповідно до кількості з'їденої трави
-                    } else {
-                        plant.setWeight(currentPlantWeight - foodRequired);
-                        weight += currentPlantWeight; // Збільшення ваги на всю доступну траву
-                    }
-                } else {
-                    // Обмеження кількості трави, яку тварина може з'їсти
-                    if (currentPlantWeight >= maxFoodToEat) {
-                        plant.getEaten(this, plant);
-                        weight += maxFoodToEat;
-                    } else {
-                        plant.setWeight(currentPlantWeight - maxFoodToEat);
-                        weight += currentPlantWeight;
-                    }
-                }
-
-                // Відновлення ваги, якщо з'їла 60 кг трави
-                if (weight >= (initialWeight + 60)) {
-                    weight = initialWeight;
-                }
-            }
+        public int getMaxSteps() {
+            return 4;
         }
 
+        public int getX() {
+            return x;
+        }
+
+        public int getY() {
+            return y;
+        }
+
+        public void setX(int x) {
+            this.x = x;
+        }
+
+        public void setY(int y) {
+            this.y = y;
+        }
+        public void setWeight(double weight) {
+            this.weight = weight;
+        }
 
         public Horse reproduce(Horse partner) {
-            if (partner != null && !hasReproduce()) { // Перевірте, чи конь ще не розмножувався
+            if (partner != null && !hasReproduce()) {
                 Horse babyHorse = new Horse("Horse", 400, 20, 4, 60, 4);
-                setReproduced(true); // Встановіть hasReproduced в true, щоб позначити розмноження
+                setReproduced(true);
                 return babyHorse;
             } else {
                 return null;
             }
         }
 
-        public double getFoodRequired() {
-            return foodRequired;
+        @Override
+        public void run() {
+            if (weight > 0.0) {
+                moveRandom();
+                weight -= weightLossRate;
+            } else {
+                die();
+            }
         }
-        private int x; // Додайте поле для координати X
-        private int y; // Додайте поле для координати Y
-
+        public void die() {
+            System.out.println(name + " помер на координатах: X= " + getX() + ", Y=" + getY());
+        }
         public void moveRandom() {
-            // Додайте код для випадкового переміщення миші
             Random random = new Random();
             int randomX = random.nextInt(getMaxSteps() * 2 + 1) - getMaxSteps();
             int randomY = random.nextInt(getMaxSteps() * 2 + 1) - getMaxSteps();
             int newX = getX() + randomX;
             int newY = getY() + randomY;
 
-            // Перевірка, щоб не виходити за межі локації
             if (newX >= 0 && newX < Location.getWidth()) {
                 setX(newX);
             }
@@ -152,81 +120,97 @@ public abstract class HerbivoreAnimals extends Animal implements Herbivore {
             }
         }
 
-        public int getMaxSteps() {
-            return 4; // Встановіть максимальну кількість кроків, яку миша може зробити
+        public boolean canEatPlant(Plant plant) {
+            if (plant != null) {
+                return true;
+            } else {
+                return false;
+            }
         }
-
-        public int getX() {
-            return x; // Повертаємо координату X
-        }
-
-        public int getY() {
-            return y; // Повертаємо координату Y
-        }
-
-        public void setX(int x) {
-            this.x = x; // Встановлюємо координату X
-        }
-
-        public void setY(int y) {
-            this.y = y; // Встановлюємо координату Y
-        }
-
-    }
-
-    public static class Deer extends HerbivoreAnimals {
-
-        private double foodRequired;
-        private double initialWeight;
-        private int maxPopulation;
-        public Deer(String name, double weight, int maxPopulation, int maxSpeed, double foodRequired, int maxSteps) {
-            super(name, weight, maxPopulation, maxSpeed, foodRequired, maxSteps);
-            weightLossRate = 4;
-            this.foodRequired = foodRequired;
-            initialWeight = weight;
-            this.maxPopulation = maxPopulation;
-        }
-
-        public double getFoodRequired() {
-            return foodRequired;
-        }
-
-
-        @Override
         public void eatPlant(Plant plant) {
             if (plant != null) {
                 double foodRequired = getFoodRequired();
                 double currentPlantWeight = plant.getWeight();
 
-                // Перевірка, чи тварина може з'їсти доступну кількість трави без перевищення своєї ваги
                 double maxFoodToEat = initialWeight - weight;
-                if (maxFoodToEat >= foodRequired) {
-                    if (currentPlantWeight >= foodRequired) {
-                        plant.getEaten(this, plant);
-                        weight += foodRequired; // Збільшення ваги відповідно до кількості з'їденої трави
-                    } else {
-                        plant.setWeight(currentPlantWeight - foodRequired);
-                        weight += currentPlantWeight; // Збільшення ваги на всю доступну траву
-                    }
-                } else {
-                    // Обмеження кількості трави, яку тварина може з'їсти
-                    if (currentPlantWeight >= maxFoodToEat) {
-                        plant.getEaten(this, plant);
-                        weight += maxFoodToEat;
-                    } else {
-                        plant.setWeight(currentPlantWeight - maxFoodToEat);
-                        weight += currentPlantWeight;
-                    }
-                }
+                double foodToEat = Math.min(currentPlantWeight, maxFoodToEat);
 
-                // Відновлення ваги, якщо з'їла 60 кг трави
-                if (weight >= (initialWeight + 50)) {
-                    weight = initialWeight;
+                if (foodToEat <= foodRequired) {
+                    if (foodToEat == 60) {
+                        weight = initialWeight;
+                        System.out.println(getName() + " з'їв 60 кг " + plant.getName() + " і повернув свою початкову вагу");
+                    } else if (foodToEat < 60 && foodToEat > 0) {
+                        plant.subtractWeight(foodToEat);
+                        weight += foodToEat;
+                        //System.out.println(getName() + " з'їв " + foodToEat + " кг " + plant.getName() + " на ділянці Х= " + getX() + " Y= " + getY());
+                    }
                 }
             }
-
+        }
+        public boolean isEaten() {
+            return eaten;
         }
 
+        public void getEaten(CarnivoreAnimals animals) {
+            if (animals != null) {
+                eaten = true;
+            }
+        }
+    }
+
+    public static class Deer extends HerbivoreAnimals implements Runnable {
+
+        private static String name;
+        private boolean hasReproduced = false;
+        private static double initialWeight;
+        private double weight;
+        private int x;
+        private int y;
+        private boolean eaten = false;
+        public Deer(String name, double weight, int maxPopulation, int maxSpeed, double foodRequired, int maxSteps) {
+            super(name, weight, maxPopulation, maxSpeed, foodRequired, maxSteps);
+            weightLossRate = 7;
+            initialWeight = weight;
+            this.weight = weight;
+            this.name = name;
+        }
+        public static String getName() {
+            return name;
+        }
+        public double getWeight() {
+            return weight;
+        }
+
+        public boolean hasReproduce() {
+            return hasReproduced;
+        }
+
+        public void setReproduced(boolean hasReproduced) {
+            this.hasReproduced = hasReproduced;
+        }
+
+        public int getMaxSteps() {
+            return 4;
+        }
+
+        public int getX() {
+            return x;
+        }
+
+        public int getY() {
+            return y;
+        }
+
+        public void setX(int x) {
+            this.x = x;
+        }
+
+        public void setY(int y) {
+            this.y = y;
+        }
+        public void setWeight(double weight) {
+            this.weight = weight;
+        }
 
         public Deer reproduce(Animal partner) {
             if (partner instanceof Deer) {
@@ -236,58 +220,129 @@ public abstract class HerbivoreAnimals extends Animal implements Herbivore {
                 return null;
             }
         }
-    }
 
-    public static class Rabbit extends HerbivoreAnimals {
-
-        private double foodRequired;
-        private double initialWeight;
-        public Rabbit(String name, double weight, int maxPopulation, int maxSpeed, double foodRequired, int maxSteps) {
-            super(name, weight, maxPopulation, maxSpeed, foodRequired, maxSteps);
-            weightLossRate = 0.05;
-            this.foodRequired = foodRequired;
-            initialWeight = weight;
+        public boolean canEatPlant(Plant plant) {
+            if (plant != null) {
+                return true;
+            } else {
+                return false;
+            }
         }
-
-        public double getFoodRequired() {
-            return foodRequired;
-        }
-
-
-        @Override
         public void eatPlant(Plant plant) {
             if (plant != null) {
                 double foodRequired = getFoodRequired();
                 double currentPlantWeight = plant.getWeight();
 
-                // Перевірка, чи тварина може з'їсти доступну кількість трави без перевищення своєї ваги
                 double maxFoodToEat = initialWeight - weight;
-                if (maxFoodToEat >= foodRequired) {
-                    if (currentPlantWeight >= foodRequired) {
-                        plant.getEaten(this, plant);
-                        weight += foodRequired; // Збільшення ваги відповідно до кількості з'їденої трави
-                    } else {
-                        plant.setWeight(currentPlantWeight - foodRequired);
-                        weight += currentPlantWeight; // Збільшення ваги на всю доступну траву
-                    }
-                } else {
-                    // Обмеження кількості трави, яку тварина може з'їсти
-                    if (currentPlantWeight >= maxFoodToEat) {
-                        plant.getEaten(this, plant);
-                        weight += maxFoodToEat;
-                    } else {
-                        plant.setWeight(currentPlantWeight - maxFoodToEat);
-                        weight += currentPlantWeight;
-                    }
-                }
+                double foodToEat = Math.min(currentPlantWeight, maxFoodToEat);
 
-                // Відновлення ваги, якщо з'їла 60 кг трави
-                if (weight >= (initialWeight + 0.45)) {
-                    weight = initialWeight;
+                if (foodToEat <= foodRequired) {
+                    if (foodToEat == 50) {
+                        weight = initialWeight;
+                        System.out.println(getName() + " з'їв 50 кг " + plant.getName() + " і повернув свою початкову вагу");
+                    } else if (foodToEat < 50 && foodToEat > 0) {
+                        plant.subtractWeight(foodToEat);
+                        weight += foodToEat;
+                        //System.out.println(getName() + " з'їв " + foodToEat + " кг " + plant.getName() + " на ділянці Х= " + getX() + " Y= " + getY());
+                    }
                 }
             }
         }
 
+        @Override
+        public void run() {
+            if (weight > 0.0) {
+                moveRandom();
+                weight -= weightLossRate;
+            } else {
+                die();
+            }
+        }
+        public void die() {
+            System.out.println(name + " помер на координатах: X= " + getX() + ", Y=" + getY());
+        }
+        public void moveRandom() {
+            Random random = new Random();
+            int randomX = random.nextInt(getMaxSteps() * 2 + 1) - getMaxSteps();
+            int randomY = random.nextInt(getMaxSteps() * 2 + 1) - getMaxSteps();
+            int newX = getX() + randomX;
+            int newY = getY() + randomY;
+
+            if (newX >= 0 && newX < Location.getWidth()) {
+                setX(newX);
+            }
+            if (newY >= 0 && newY < Location.getHeight()) {
+                setY(newY);
+            }
+        }
+
+        public boolean isEaten() {
+            return eaten;
+        }
+
+        public void getEaten(CarnivoreAnimals animals) {
+            if (animals != null) {
+                eaten = true;
+            }
+        }
+    }
+
+    public static class Rabbit extends HerbivoreAnimals implements Runnable {
+
+        private static String name;
+        private boolean hasReproduced = false;
+        private static double initialWeight;
+        private double weight;
+        private int x;
+        private int y;
+        private boolean eaten = false;
+
+        public Rabbit(String name, double weight, int maxPopulation, int maxSpeed, double foodRequired, int maxSteps) {
+            super(name, weight, maxPopulation, maxSpeed, foodRequired, maxSteps);
+            weightLossRate = 0.05;
+            initialWeight = weight;
+            this.weight = weight;
+            this.name = name;
+        }
+
+        public static String getName() {
+            return name;
+        }
+        public double getWeight() {
+            return weight;
+        }
+
+        public boolean hasReproduce() {
+            return hasReproduced;
+        }
+
+        public void setReproduced(boolean hasReproduced) {
+            this.hasReproduced = hasReproduced;
+        }
+
+        public int getMaxSteps() {
+            return 2;
+        }
+
+        public int getX() {
+            return x;
+        }
+
+        public int getY() {
+            return y;
+        }
+
+        public void setX(int x) {
+            this.x = x;
+        }
+
+        public void setY(int y) {
+            this.y = y;
+        }
+
+        public void setWeight(double weight) {
+            this.weight = weight;
+        }
 
         public Rabbit reproduce(Animal partner) {
             if (partner instanceof Rabbit) {
@@ -297,15 +352,86 @@ public abstract class HerbivoreAnimals extends Animal implements Herbivore {
                 return null;
             }
         }
+
+        public boolean canEatPlant(Plant plant) {
+
+            if (plant != null) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        public void eatPlant(Plant plant) {
+            if (plant != null) {
+                double foodRequired = getFoodRequired();
+                double currentPlantWeight = plant.getWeight();
+
+                double maxFoodToEat = initialWeight - weight;
+                double foodToEat = Math.min(currentPlantWeight, maxFoodToEat);
+                DecimalFormat df = new DecimalFormat("#.###");
+
+                if (foodToEat <= foodRequired) {
+                    if (foodToEat == 0.45) {
+                        weight = initialWeight;
+                        System.out.println(getName() + " з'їв 0.45 кг " + plant.getName() + " і повернув свою початкову вагу");
+                    } else if (foodToEat < 0.45 && foodToEat > 0) {
+                        plant.subtractWeight(foodToEat);
+                        weight += foodToEat;
+                        //System.out.println(getName() + " з'їв " + df.format(foodToEat) + " кг " + plant.getName() + " на ділянці Х= " + getX() + " Y= " + getY());
+                    }
+                }
+            }
+        }
+
+
+
+        @Override
+        public void run() {
+            if (weight > 0.0) {
+                moveRandom();
+                weight -= weightLossRate;
+            } else {
+                die();
+            }
+        }
+        public void die() {
+            System.out.println(name + " помер на координатах: X= " + getX() + ", Y=" + getY());
+        }
+
+        public void moveRandom() {
+            Random random = new Random();
+            int randomX = random.nextInt(getMaxSteps() * 2 + 1) - getMaxSteps();
+            int randomY = random.nextInt(getMaxSteps() * 2 + 1) - getMaxSteps();
+            int newX = getX() + randomX;
+            int newY = getY() + randomY;
+
+            if (newX >= 0 && newX < Location.getWidth()) {
+                setX(newX);
+            }
+            if (newY >= 0 && newY < Location.getHeight()) {
+                setY(newY);
+            }
+        }
+
+        public boolean isEaten() {
+            return eaten;
+        }
+
+        public void getEaten(CarnivoreAnimals animals) {
+            if (animals != null) {
+                eaten = true;
+            }
+        }
     }
 
-    public static class Mouse extends HerbivoreAnimals implements Runnable{
+    public static class Mouse extends HerbivoreAnimals implements Runnable {
         private static String name;
         private boolean hasReproduced = false;
         private static double initialWeight;
         private double weight;
-        private int x; // Додайте поле для координати X
-        private int y; // Додайте поле для координати Y
+        private int x;
+        private int y;
+        private boolean eaten = false;
 
         public Mouse(String name, double weight, int maxPopulation, int maxSpeed, double foodRequired, int maxSteps) {
             super(name, weight, maxPopulation, maxSpeed, foodRequired, maxSteps);
@@ -329,150 +455,248 @@ public abstract class HerbivoreAnimals extends Animal implements Herbivore {
         public void setReproduced(boolean hasReproduced) {
             this.hasReproduced = hasReproduced;
         }
-        public Mouse reproduce(Animal partner) {
-            if (partner instanceof Mouse) {
-                // Отримайте характеристики нового мишенята
-                String name = "Mouse"; // Назва
-                double weight = 0.05; // Вага
-                int maxPopulation = 500; // Максимальна кількість особин на клітинці
-                int maxSpeed = 1; // Максимальна швидкість
-                double foodRequired = 0.01; // Кількість їжі, необхідна для насичення
-                int maxSteps = 1; // Максимальна кількість кроків
 
-                // Створіть нове мишеня
-                Mouse babyMouse = new Mouse(name, weight, maxPopulation, maxSpeed, foodRequired, maxSteps);
+        public int getMaxSteps() {
+            return 1;
+        }
+
+        public int getX() {
+            return x;
+        }
+
+        public int getY() {
+            return y;
+        }
+
+        public void setX(int x) {
+            this.x = x;
+        }
+
+        public void setY(int y) {
+            this.y = y;
+        }
+
+        public void setWeight(double weight) {
+            this.weight = weight;
+        }
+
+        public Mouse reproduce(Mouse partner) {
+            if (partner != null && !hasReproduce()) {
+                Mouse babyMouse = new Mouse("Mouse", 0.05, 500, 1, 0.01, 1);
+                setReproduced(true);
                 return babyMouse;
             } else {
                 return null;
             }
         }
 
+        @Override
+        public void run() {
+            if (weight > 0.0) {
+                moveRandom();
+                weight -= weightLossRate;
+            } else {
+                die();
+            }
+        }
+        public void die() {
+            System.out.println(name + " помер на координатах: X= " + getX() + ", Y=" + getY());
+        }
 
         public void moveRandom() {
-
-
-            // Додайте код для випадкового переміщення миші
             Random random = new Random();
             int randomX = random.nextInt(getMaxSteps() * 2 + 1) - getMaxSteps();
             int randomY = random.nextInt(getMaxSteps() * 2 + 1) - getMaxSteps();
             int newX = getX() + randomX;
             int newY = getY() + randomY;
 
-            // Перевірка, щоб не виходити за межі локації
             if (newX >= 0 && newX < Location.getWidth()) {
                 setX(newX);
             }
             if (newY >= 0 && newY < Location.getHeight()) {
                 setY(newY);
             }
-
         }
 
-        public int getMaxSteps() {
-            return 1; // Встановіть максимальну кількість кроків, яку миша може зробити
-        }
-
-        public int getX() {
-            return x; // Повертаємо координату X
-        }
-
-        public int getY() {
-            return y; // Повертаємо координату Y
-        }
-
-        public void setX(int x) {
-            this.x = x; // Встановлюємо координату X
-        }
-
-        public void setY(int y) {
-            this.y = y; // Встановлюємо координату Y
-        }
         public boolean canEatCaterpillar(Caterpillar caterpillar) {
             return (getX() == caterpillar.getX() && getY() == caterpillar.getY());
         }
-        @Override
-        public void run() {
-            if (weight > 0.0) { // Цикл працює, поки вага більше нуля
-                moveRandom(); // Виклик методу для випадкового переміщення
-                weight -= weightLossRate; // Втрата ваги на кожному такті
-                // Інша логіка тварини
-            } else {
-                die(); // Якщо вага стала нульовою або від'ємною, тварина помирає
-            }
-        }
-        public void die() {
-            System.out.println(name + " помер на координатах: X= " + getX() + ", Y=" + getY());
-            // Додаткова логіка, яку ви хочете виконати при смерті тварини
-        }
-
 
         public void eatCaterpillar(Caterpillar caterpillar) {
-            if (caterpillar != null) {
-                // Перевірка, чи гусінь є доступною для споживання
-                double foodRequired = getFoodRequired(); // Отримайте кількість їжі, яку потрібно качці для насичення
+            if (caterpillar != null && getWeight() > 0.0) {
+                double foodRequired = getFoodRequired();
+                double maxFoodToEat = initialWeight - getWeight();
 
-                if (weight < initialWeight) { // Перевірка, чи вага качки не перевищує її початкову вагу
-                    double maxFoodToEat = initialWeight - weight;
-                    if (caterpillar.getWeight() >= foodRequired && caterpillar.getWeight() <= maxFoodToEat) {
-                        // Гусінь має достатньо їжі для качки та не перевищує максимальну кількість
-                        caterpillar.getEaten(this); // Гусінь з'їдається качкою
-                        if (weight > initialWeight) {
-                            weight = initialWeight; // Перевірка і обмеження ваги качки
-                        }
-                        // Тут ви також можете збільшити питність або здоров'я качки, в залежності від вашої логіки.
+                if (caterpillar.getWeight() >= foodRequired) {
+                    double foodToEat = maxFoodToEat;
+
+                    if (foodToEat <= foodRequired) {
+                        caterpillar.getEaten(this);
+                        setWeight(getWeight() + foodToEat);
+                        System.out.println(HerbivoreAnimals.Mouse.getName() + " з'їв " + HerbivoreAnimals.Caterpillar.getName() + " на координатах X= " + getX() + " Y= " + getY());
                     }
                 }
             }
         }
 
+        public boolean canEatPlant(Plant plant) {
+            if (plant != null) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        public void eatPlant(Plant plant) {
+            if (plant != null) {
+                double foodRequired = getFoodRequired();
+                double currentPlantWeight = plant.getWeight();
+                double maxFoodToEat = initialWeight - weight;
+                double foodToEat = Math.min(currentPlantWeight, maxFoodToEat);
+
+                DecimalFormat df = new DecimalFormat("#.###");
+
+                if (foodToEat <= foodRequired) {
+                    if (foodToEat == 0.01) {
+                        weight = initialWeight;
+                        System.out.println(getName() + " з'їв " + df.format(foodToEat) + " кг " + plant.getName() + " і повернув свою початкову вагу");
+                    } else if (foodToEat < 0.01 && foodToEat > 0) {
+                        plant.subtractWeight(foodToEat);
+                        weight += foodToEat;
+                        //System.out.println(getName() + " з'їв " + df.format(foodToEat) + " кг " + plant.getName() + " на ділянці Х= " + getX() + " Y= " + getY());
+                    }
+                }
+            }
+        }
+        public boolean isEaten() {
+            return eaten;
+        }
+
+        public void getEaten(CarnivoreAnimals animals) {
+            if (animals != null) {
+                eaten = true;
+            }
+        }
     }
 
 
-    public static class Goat extends HerbivoreAnimals {
+    public static class Goat extends HerbivoreAnimals implements Runnable {
 
-        private double foodRequired;
-        private double initialWeight;
+        private static String name;
+        private boolean hasReproduced = false;
+        private static double initialWeight;
+        private double weight;
+        private int x;
+        private int y;
+        private boolean eaten = false;
         public Goat(String name, double weight, int maxPopulation, int maxSpeed, double foodRequired, int maxSteps) {
             super(name, weight, maxPopulation, maxSpeed, foodRequired, maxSteps);
             weightLossRate = 1.5;
-            this.foodRequired = foodRequired;
             initialWeight = weight;
+            this.weight = weight;
+            this.name = name;
         }
-        public double getFoodRequired() {
-            return foodRequired;
+        public static String getName() {
+            return name;
+        }
+        public double getWeight() {
+            return weight;
+        }
+
+        public boolean hasReproduce() {
+            return hasReproduced;
+        }
+
+        public void setReproduced(boolean hasReproduced) {
+            this.hasReproduced = hasReproduced;
+        }
+
+        public int getMaxSteps() {
+            return 3;
+        }
+
+        public int getX() {
+            return x;
+        }
+
+        public int getY() {
+            return y;
+        }
+
+        public void setX(int x) {
+            this.x = x;
+        }
+
+        public void setY(int y) {
+            this.y = y;
+        }
+
+        public void setWeight(double weight) {
+            this.weight = weight;
         }
 
         @Override
+        public void run() {
+            if (weight > 0.0) {
+                moveRandom();
+                weight -= weightLossRate;
+            } else {
+                die();
+            }
+        }
+        public void die() {
+            System.out.println(name + " помер на координатах: X= " + getX() + ", Y=" + getY());
+        }
+
+        public void moveRandom() {
+            Random random = new Random();
+            int randomX = random.nextInt(getMaxSteps() * 2 + 1) - getMaxSteps();
+            int randomY = random.nextInt(getMaxSteps() * 2 + 1) - getMaxSteps();
+            int newX = getX() + randomX;
+            int newY = getY() + randomY;
+
+            if (newX >= 0 && newX < Location.getWidth()) {
+                setX(newX);
+            }
+            if (newY >= 0 && newY < Location.getHeight()) {
+                setY(newY);
+            }
+        }
+
+        public boolean canEatPlant(Plant plant) {
+            if (plant != null) {
+                return true;
+            } else {
+                return false;
+            }
+        }
         public void eatPlant(Plant plant) {
             if (plant != null) {
                 double foodRequired = getFoodRequired();
                 double currentPlantWeight = plant.getWeight();
 
-                // Перевірка, чи тварина може з'їсти доступну кількість трави без перевищення своєї ваги
                 double maxFoodToEat = initialWeight - weight;
-                if (maxFoodToEat >= foodRequired) {
-                    if (currentPlantWeight >= foodRequired) {
-                        plant.getEaten(this, plant);
-                        weight += foodRequired; // Збільшення ваги відповідно до кількості з'їденої трави
-                    } else {
-                        plant.setWeight(currentPlantWeight - foodRequired);
-                        weight += currentPlantWeight; // Збільшення ваги на всю доступну траву
-                    }
-                } else {
-                    // Обмеження кількості трави, яку тварина може з'їсти
-                    if (currentPlantWeight >= maxFoodToEat) {
-                        plant.getEaten(this, plant);
-                        weight += maxFoodToEat;
-                    } else {
-                        plant.setWeight(currentPlantWeight - maxFoodToEat);
-                        weight += currentPlantWeight;
-                    }
-                }
+                double foodToEat = Math.min(currentPlantWeight, maxFoodToEat);
 
-                // Відновлення ваги, якщо з'їла 60 кг трави
-                if (weight >= (initialWeight + 10)) {
-                    weight = initialWeight;
+                if (foodToEat <= foodRequired) {
+                    if (foodToEat == 10) {
+                        weight = initialWeight;
+                        System.out.println(getName() + " з'їв 10 кг " + plant.getName() + " і повернув свою початкову вагу");
+                    } else if (foodToEat < 10 && foodToEat > 0) {
+                        plant.subtractWeight(foodToEat);
+                        weight += foodToEat;
+                        //System.out.println(getName() + " з'їв " + foodToEat + " кг " + plant.getName() + " на ділянці Х= " + getX() + " Y= " + getY());
+                    }
                 }
+            }
+        }
+        public boolean isEaten() {
+            return eaten;
+        }
+
+        public void getEaten(CarnivoreAnimals animals) {
+            if (animals != null) {
+                eaten = true;
             }
         }
 
@@ -488,51 +712,123 @@ public abstract class HerbivoreAnimals extends Animal implements Herbivore {
     }
 
 
-    public static class Sheep extends HerbivoreAnimals {
+    public static class Sheep extends HerbivoreAnimals implements  Runnable {
 
-        private double foodRequired;
-        private double initialWeight;
+        private static String name;
+        private boolean hasReproduced = false;
+        private static double initialWeight;
+        private double weight;
+        private int x;
+        private int y;
+        private boolean eaten = false;
         public Sheep(String name, double weight, int maxPopulation, int maxSpeed, double foodRequired, int maxSteps) {
             super(name, weight, maxPopulation, maxSpeed, foodRequired, maxSteps);
             weightLossRate = 1.75;
-            this.foodRequired = foodRequired;
             initialWeight = weight;
+            this.weight = weight;
+            this.name = name;
         }
-        public double getFoodRequired() {
-            return foodRequired;
+        public static String getName() {
+            return name;
+        }
+        public double getWeight() {
+            return weight;
+        }
+
+        public boolean hasReproduce() {
+            return hasReproduced;
+        }
+
+        public void setReproduced(boolean hasReproduced) {
+            this.hasReproduced = hasReproduced;
+        }
+
+        public int getMaxSteps() {
+            return 3;
+        }
+
+        public int getX() {
+            return x;
+        }
+
+        public int getY() {
+            return y;
+        }
+
+        public void setX(int x) {
+            this.x = x;
+        }
+
+        public void setY(int y) {
+            this.y = y;
+        }
+
+        public void setWeight(double weight) {
+            this.weight = weight;
         }
 
         @Override
+        public void run() {
+            if (weight > 0.0) {
+                moveRandom();
+                weight -= weightLossRate;
+            } else {
+                die();
+            }
+        }
+        public void die() {
+            System.out.println(name + " помер на координатах: X= " + getX() + ", Y=" + getY());
+        }
+
+        public void moveRandom() {
+            Random random = new Random();
+            int randomX = random.nextInt(getMaxSteps() * 2 + 1) - getMaxSteps();
+            int randomY = random.nextInt(getMaxSteps() * 2 + 1) - getMaxSteps();
+            int newX = getX() + randomX;
+            int newY = getY() + randomY;
+
+            if (newX >= 0 && newX < Location.getWidth()) {
+                setX(newX);
+            }
+            if (newY >= 0 && newY < Location.getHeight()) {
+                setY(newY);
+            }
+        }
+
+        public boolean canEatPlant(Plant plant) {
+            if (plant != null) {
+                return true;
+            } else {
+                return false;
+            }
+        }
         public void eatPlant(Plant plant) {
             if (plant != null) {
                 double foodRequired = getFoodRequired();
                 double currentPlantWeight = plant.getWeight();
 
-                // Перевірка, чи тварина може з'їсти доступну кількість трави без перевищення своєї ваги
                 double maxFoodToEat = initialWeight - weight;
-                if (maxFoodToEat >= foodRequired) {
-                    if (currentPlantWeight >= foodRequired) {
-                        plant.getEaten(this, plant);
-                        weight += foodRequired; // Збільшення ваги відповідно до кількості з'їденої трави
-                    } else {
-                        plant.setWeight(currentPlantWeight - foodRequired);
-                        weight += currentPlantWeight; // Збільшення ваги на всю доступну траву
-                    }
-                } else {
-                    // Обмеження кількості трави, яку тварина може з'їсти
-                    if (currentPlantWeight >= maxFoodToEat) {
-                        plant.getEaten(this, plant);
-                        weight += maxFoodToEat;
-                    } else {
-                        plant.setWeight(currentPlantWeight - maxFoodToEat);
-                        weight += currentPlantWeight;
-                    }
-                }
+                double foodToEat = Math.min(currentPlantWeight, maxFoodToEat);
 
-                // Відновлення ваги, якщо з'їла 60 кг трави
-                if (weight >= (initialWeight + 15)) {
-                    weight = initialWeight;
+                if (foodToEat <= foodRequired) {
+                    if (foodToEat == 15) {
+                        weight = initialWeight;
+                        System.out.println(getName() + " з'їв 15 кг " + plant.getName() + " і повернув свою початкову вагу");
+                    } else if (foodToEat < 15 && foodToEat > 0) {
+                        plant.subtractWeight(foodToEat);
+                        weight += foodToEat;
+                        //System.out.println(getName() + " з'їв " + foodToEat + " кг " + plant.getName() + " на ділянці Х= " + getX() + " Y= " + getY());
+                    }
                 }
+            }
+        }
+        public boolean isEaten() {
+            return eaten;
+        }
+
+        public void getEaten(CarnivoreAnimals animals) {
+            if (animals != null) {
+                eaten = true;
             }
         }
 
@@ -547,57 +843,114 @@ public abstract class HerbivoreAnimals extends Animal implements Herbivore {
         }
     }
 
-    public static class Boar extends HerbivoreAnimals {
+    public static class Boar extends HerbivoreAnimals implements Runnable {
 
         private static String name;
-        private double foodRequired;
-        private double initialWeight;
+        private boolean hasReproduced = false;
+        private static double initialWeight;
+        private double weight;
+        private int x;
+        private int y;
+        private boolean eaten = false;
         public Boar(String name, double weight, int maxPopulation, int maxSpeed, double foodRequired, int maxSteps) {
             super(name, weight, maxPopulation, maxSpeed, foodRequired, maxSteps);
             weightLossRate = 10;
-            this.foodRequired = foodRequired;
             initialWeight = weight;
+            this.weight = weight;
             this.name = name;
         }
 
         public static String getName() {
             return name;
         }
+        public double getWeight() {
+            return weight;
+        }
 
-        public double getFoodRequired() {
-            return foodRequired;
+        public boolean hasReproduce() {
+            return hasReproduced;
+        }
+
+        public void setReproduced(boolean hasReproduced) {
+            this.hasReproduced = hasReproduced;
+        }
+
+        public int getMaxSteps() {
+            return 2;
+        }
+
+        public int getX() {
+            return x;
+        }
+
+        public int getY() {
+            return y;
+        }
+
+        public void setX(int x) {
+            this.x = x;
+        }
+
+        public void setY(int y) {
+            this.y = y;
+        }
+
+        public void setWeight(double weight) {
+            this.weight = weight;
         }
 
         @Override
+        public void run() {
+            if (weight > 0.0) {
+                moveRandom();
+                weight -= weightLossRate;
+            } else {
+                die();
+            }
+        }
+        public void die() {
+            System.out.println(name + " помер на координатах: X= " + getX() + ", Y=" + getY());
+        }
+
+        public void moveRandom() {
+            Random random = new Random();
+            int randomX = random.nextInt(getMaxSteps() * 2 + 1) - getMaxSteps();
+            int randomY = random.nextInt(getMaxSteps() * 2 + 1) - getMaxSteps();
+            int newX = getX() + randomX;
+            int newY = getY() + randomY;
+
+            if (newX >= 0 && newX < Location.getWidth()) {
+                setX(newX);
+            }
+            if (newY >= 0 && newY < Location.getHeight()) {
+                setY(newY);
+            }
+        }
+
+        public boolean canEatPlant(Plant plant) {
+            if (plant != null) {
+                return true;
+            } else {
+                return false;
+            }
+        }
         public void eatPlant(Plant plant) {
             if (plant != null) {
                 double foodRequired = getFoodRequired();
                 double currentPlantWeight = plant.getWeight();
 
-                // Перевірка, чи тварина може з'їсти доступну кількість трави без перевищення своєї ваги
                 double maxFoodToEat = initialWeight - weight;
-                if (maxFoodToEat >= foodRequired) {
-                    if (currentPlantWeight >= foodRequired) {
-                        plant.getEaten(this, plant);
-                        weight += foodRequired; // Збільшення ваги відповідно до кількості з'їденої трави
-                    } else {
-                        plant.setWeight(currentPlantWeight - foodRequired);
-                        weight += currentPlantWeight; // Збільшення ваги на всю доступну траву
-                    }
-                } else {
-                    // Обмеження кількості трави, яку тварина може з'їсти
-                    if (currentPlantWeight >= maxFoodToEat) {
-                        plant.getEaten(this, plant);
-                        weight += maxFoodToEat;
-                    } else {
-                        plant.setWeight(currentPlantWeight - maxFoodToEat);
-                        weight += currentPlantWeight;
-                    }
-                }
+                double foodToEat = Math.min(currentPlantWeight, maxFoodToEat);
 
-                // Відновлення ваги, якщо з'їла 60 кг трави
-                if (weight >= (initialWeight + 50)) {
-                    weight = initialWeight;
+                if (foodToEat <= foodRequired) {
+                    if (foodToEat == 50) {
+                        weight = initialWeight;
+                        System.out.println(getName() + " з'їв 50 кг " + plant.getName() + " і повернув свою початкову вагу");
+                    } else if (foodToEat < 50 && foodToEat > 0) {
+                        plant.subtractWeight(foodToEat);
+                        weight += foodToEat;
+                        //System.out.println(getName() + " з'їв " + foodToEat + " кг " + plant.getName() + " на ділянці Х= " + getX() + " Y= " + getY());
+                    }
                 }
             }
         }
@@ -610,20 +963,110 @@ public abstract class HerbivoreAnimals extends Animal implements Herbivore {
             }
         }
         public boolean canEatCaterpillar(Caterpillar caterpillar) {
-            // Додайте вашу логіку тут, яка визначає, чи ця тварина може їсти гусениць
-            return true; // Приклад, якщо тварина завжди може їсти гусениць
+            return (getX() == caterpillar.getX() && getY() == caterpillar.getY());
         }
-        private int x; // Додайте поле для координати X
-        private int y; // Додайте поле для координати Y
+
+        public void eatCaterpillar(Caterpillar caterpillar) {
+            if (caterpillar != null && getWeight() > 0.0) {
+                double foodRequired = getFoodRequired();
+                double maxFoodToEat = initialWeight - getWeight();
+
+                if (caterpillar.getWeight() >= foodRequired) {
+                    double foodToEat = maxFoodToEat;
+
+                    if (foodToEat <= foodRequired) {
+                        caterpillar.getEaten(this);
+                        setWeight(getWeight() + foodToEat);
+                        System.out.println(HerbivoreAnimals.Boar.getName() + " з'їв " + HerbivoreAnimals.Caterpillar.getName() + " на координатах X= " + getX() + " Y= " + getY());
+                    }
+                }
+            }
+        }
+        public boolean isEaten() {
+            return eaten;
+        }
+
+        public void getEaten(CarnivoreAnimals animals) {
+            if (animals != null) {
+                eaten = true;
+            }
+        }
+    }
+
+    public static class Buffalo extends HerbivoreAnimals implements Runnable {
+
+        private static String name;
+        private boolean hasReproduced = false;
+        private static double initialWeight;
+        private double weight;
+        private int x;
+        private int y;
+        private boolean eaten = false;
+        public Buffalo(String name, double weight, int maxPopulation, int maxSpeed, double foodRequired, int maxSteps) {
+            super(name, weight, maxPopulation, maxSpeed, foodRequired, maxSteps);
+            weightLossRate = 17.5;
+            initialWeight = weight;
+            this.weight = weight;
+            this.name = name;
+        }
+        public static String getName() {
+            return name;
+        }
+        public double getWeight() {
+            return weight;
+        }
+
+        public boolean hasReproduce() {
+            return hasReproduced;
+        }
+
+        public void setReproduced(boolean hasReproduced) {
+            this.hasReproduced = hasReproduced;
+        }
+
+        public int getMaxSteps() {
+            return 3;
+        }
+
+        public int getX() {
+            return x;
+        }
+
+        public int getY() {
+            return y;
+        }
+
+        public void setX(int x) {
+            this.x = x;
+        }
+
+        public void setY(int y) {
+            this.y = y;
+        }
+
+        public void setWeight(double weight) {
+            this.weight = weight;
+        }
+        @Override
+        public void run() {
+            if (weight > 0.0) {
+                moveRandom();
+                weight -= weightLossRate;
+            } else {
+                die();
+            }
+        }
+        public void die() {
+            System.out.println(name + " помер на координатах: X= " + getX() + ", Y=" + getY());
+        }
+
         public void moveRandom() {
-            // Додайте код для випадкового переміщення миші
             Random random = new Random();
             int randomX = random.nextInt(getMaxSteps() * 2 + 1) - getMaxSteps();
             int randomY = random.nextInt(getMaxSteps() * 2 + 1) - getMaxSteps();
             int newX = getX() + randomX;
             int newY = getY() + randomY;
 
-            // Перевірка, щоб не виходити за межі локації
             if (newX >= 0 && newX < Location.getWidth()) {
                 setX(newX);
             }
@@ -632,71 +1075,40 @@ public abstract class HerbivoreAnimals extends Animal implements Herbivore {
             }
         }
 
-        public int getMaxSteps() {
-            return 0; // Встановіть максимальну кількість кроків, яку миша може зробити
+        public boolean canEatPlant(Plant plant) {
+            if (plant != null) {
+                return true;
+            } else {
+                return false;
+            }
         }
-
-        public int getX() {
-            return x; // Повертаємо координату X
-        }
-
-        public int getY() {
-            return y; // Повертаємо координату Y
-        }
-
-        public void setX(int x) {
-            this.x = x; // Встановлюємо координату X
-        }
-
-        public void setY(int y) {
-            this.y = y; // Встановлюємо координату Y
-        }
-    }
-
-    public static class Buffalo extends HerbivoreAnimals {
-
-        private double foodRequired;
-        private double initialWeight;
-        public Buffalo(String name, double weight, int maxPopulation, int maxSpeed, double foodRequired, int maxSteps) {
-            super(name, weight, maxPopulation, maxSpeed, foodRequired, maxSteps);
-            weightLossRate = 17.5;
-            this.foodRequired = foodRequired;
-            initialWeight = weight;
-        }
-        public double getFoodRequired() {
-            return foodRequired;
-        }
-        @Override
         public void eatPlant(Plant plant) {
             if (plant != null) {
                 double foodRequired = getFoodRequired();
                 double currentPlantWeight = plant.getWeight();
 
-                // Перевірка, чи тварина може з'їсти доступну кількість трави без перевищення своєї ваги
                 double maxFoodToEat = initialWeight - weight;
-                if (maxFoodToEat >= foodRequired) {
-                    if (currentPlantWeight >= foodRequired) {
-                        plant.getEaten(this, plant);
-                        weight += foodRequired; // Збільшення ваги відповідно до кількості з'їденої трави
-                    } else {
-                        plant.setWeight(currentPlantWeight - foodRequired);
-                        weight += currentPlantWeight; // Збільшення ваги на всю доступну траву
-                    }
-                } else {
-                    // Обмеження кількості трави, яку тварина може з'їсти
-                    if (currentPlantWeight >= maxFoodToEat) {
-                        plant.getEaten(this, plant);
-                        weight += maxFoodToEat;
-                    } else {
-                        plant.setWeight(currentPlantWeight - maxFoodToEat);
-                        weight += currentPlantWeight;
-                    }
-                }
+                double foodToEat = Math.min(currentPlantWeight, maxFoodToEat);
 
-                // Відновлення ваги, якщо з'їла 60 кг трави
-                if (weight >= (initialWeight + 100)) {
-                    weight = initialWeight;
+                if (foodToEat <= foodRequired) {
+                    if (foodToEat == 100) {
+                        weight = initialWeight;
+                        System.out.println(getName() + " з'їв 100 кг " + plant.getName() + " і повернув свою початкову вагу");
+                    } else if (foodToEat < 100 && foodToEat > 0) {
+                        plant.subtractWeight(foodToEat);
+                        weight += foodToEat;
+                        //System.out.println(getName() + " з'їв " + foodToEat + " кг " + plant.getName() + " на ділянці Х= " + getX() + " Y= " + getY());
+                    }
                 }
+            }
+        }
+        public boolean isEaten() {
+            return eaten;
+        }
+
+        public void getEaten(CarnivoreAnimals animals) {
+            if (animals != null) {
+                eaten = true;
             }
         }
 
@@ -711,55 +1123,129 @@ public abstract class HerbivoreAnimals extends Animal implements Herbivore {
         }
     }
 
-    public static class Duck extends HerbivoreAnimals {
+    public static class Duck extends HerbivoreAnimals implements Runnable {
 
-        private double foodRequired;
+        private static String name;
+        private boolean hasReproduced = false;
         private static double initialWeight;
+        private double weight;
+        private int x;
+        private int y;
+        private boolean eaten = false;
 
         public Duck(String name, double weight, int maxPopulation, int maxSpeed, double foodRequired, int maxSteps) {
             super(name, weight, maxPopulation, maxSpeed, foodRequired, maxSteps);
-            this.foodRequired = foodRequired;
             weightLossRate = 0.025;
             initialWeight = weight;
+            this.weight = weight;
+            this.name = name;
+        }
+        public static String getName() {
+            return name;
+        }
+        public double getWeight() {
+            return weight;
         }
 
-        @Override
+        public boolean hasReproduce() {
+            return hasReproduced;
+        }
+
+        public void setReproduced(boolean hasReproduced) {
+            this.hasReproduced = hasReproduced;
+        }
+
+        public int getMaxSteps() {
+            return 4;
+        }
+
+        public int getX() {
+            return x;
+        }
+
+        public int getY() {
+            return y;
+        }
+
+        public void setX(int x) {
+            this.x = x;
+        }
+
+        public void setY(int y) {
+            this.y = y;
+        }
+
+        public void setWeight(double weight) {
+            this.weight = weight;
+        }
+        public boolean canEatPlant(Plant plant) {
+            if (plant != null) {
+                return true;
+            } else {
+                return false;
+            }
+        }
         public void eatPlant(Plant plant) {
             if (plant != null) {
                 double foodRequired = getFoodRequired();
                 double currentPlantWeight = plant.getWeight();
 
-                // Перевірка, чи тварина може з'їсти доступну кількість трави без перевищення своєї ваги
                 double maxFoodToEat = initialWeight - weight;
-                if (maxFoodToEat >= foodRequired) {
-                    if (currentPlantWeight >= foodRequired) {
-                        plant.getEaten(this, plant);
-                        weight += foodRequired; // Збільшення ваги відповідно до кількості з'їденої трави
-                    } else {
-                        plant.setWeight(currentPlantWeight - foodRequired);
-                        weight += currentPlantWeight; // Збільшення ваги на всю доступну траву
-                    }
-                } else {
-                    // Обмеження кількості трави, яку тварина може з'їсти
-                    if (currentPlantWeight >= maxFoodToEat) {
-                        plant.getEaten(this, plant);
-                        weight += maxFoodToEat;
-                    } else {
-                        plant.setWeight(currentPlantWeight - maxFoodToEat);
-                        weight += currentPlantWeight;
-                    }
-                }
+                double foodToEat = Math.min(currentPlantWeight, maxFoodToEat);
 
-                // Відновлення ваги, якщо з'їла 60 кг трави
-                if (weight >= (initialWeight + 0.15)) {
-                    weight = initialWeight;
+                if (foodToEat <= foodRequired) {
+                    if (foodToEat == 0.15) {
+                        weight = initialWeight;
+                        System.out.println(getName() + " з'їв 0.15 кг " + plant.getName() + " і повернув свою початкову вагу");
+                    } else if (foodToEat < 0.15 && foodToEat > 0) {
+                        plant.subtractWeight(foodToEat);
+                        weight += foodToEat;
+                        //System.out.println(getName() + " з'їв " + foodToEat + " кг " + plant.getName() + " на ділянці Х= " + getX() + " Y= " + getY());
+                    }
                 }
             }
         }
+        @Override
+        public void run() {
+            if (weight > 0.0) {
+                moveRandom();
+                weight -= weightLossRate;
+            } else {
+                die();
+            }
+        }
+        public void die() {
+            System.out.println(name + " помер на координатах: X= " + getX() + ", Y=" + getY());
+        }
+
+        public void moveRandom() {
+            Random random = new Random();
+            int randomX = random.nextInt(getMaxSteps() * 2 + 1) - getMaxSteps();
+            int randomY = random.nextInt(getMaxSteps() * 2 + 1) - getMaxSteps();
+            int newX = getX() + randomX;
+            int newY = getY() + randomY;
+
+            if (newX >= 0 && newX < Location.getWidth()) {
+                setX(newX);
+            }
+            if (newY >= 0 && newY < Location.getHeight()) {
+                setY(newY);
+            }
+        }
+        public boolean isEaten() {
+            return eaten;
+        }
+
+        public void getEaten(CarnivoreAnimals animals) {
+            if (animals != null) {
+                eaten = true;
+            }
+        }
+
 
         public Duck reproduce(Animal partner) {
             if (partner instanceof Duck) {
-                Duck babyDuck = new Duck("Duck", 1, 200, 4, 0.15, 0);
+                Duck babyDuck = new Duck("Duck", 1, 200, 4, 0.15, 4);
                 return babyDuck;
             } else {
                 return null;
@@ -768,57 +1254,24 @@ public abstract class HerbivoreAnimals extends Animal implements Herbivore {
 
 
         public boolean canEatCaterpillar(Caterpillar caterpillar) {
-            // Перевірка, чи качка має меншу вагу, ніж початкова
-            if (weight < initialWeight) {
-                return true;
-            }
-            return false;
+            return (getX() == caterpillar.getX() && getY() == caterpillar.getY());
         }
-
-        public List<Caterpillar> findAvailableCaterpillars() {
-            List<Caterpillar> availableCaterpillars = new ArrayList<>();
-
-            // Припустимо, що у вас є список всіх гусениць в локації
-            List<Caterpillar> allCaterpillars = getAllCaterpillarsInLocation();
-
-            // Ваша логіка пошуку доступних гусениць для качки
-            for (Caterpillar caterpillar : allCaterpillars) {
-                if (canEatCaterpillar(caterpillar)) {
-                    availableCaterpillars.add(caterpillar);
-                }
-            }
-
-            return availableCaterpillars;
-        }
-        private List<Caterpillar> getAllCaterpillarsInLocation() {
-            List<Caterpillar> allCaterpillars = new ArrayList<>();
-            // Додайте логіку для отримання всіх гусениць в локації
-            return allCaterpillars;
-        }
-
-
 
         public void eatCaterpillar(Caterpillar caterpillar) {
-            if (caterpillar != null) {
-                // Перевірка, чи гусінь є доступною для споживання
-                double foodRequired = getFoodRequired(); // Отримайте кількість їжі, яку потрібно качці для насичення
+            if (caterpillar != null && getWeight() > 0.0) {
+                double foodRequired = getFoodRequired();
+                double maxFoodToEat = initialWeight - getWeight();
 
-                if (weight < initialWeight) { // Перевірка, чи вага качки не перевищує її початкову вагу
-                    double maxFoodToEat = initialWeight - weight;
-                    if (caterpillar.getWeight() >= foodRequired && caterpillar.getWeight() <= maxFoodToEat) {
-                        // Гусінь має достатньо їжі для качки та не перевищує максимальну кількість
-                        caterpillar.getEaten(this); // Гусінь з'їдається качкою
-                        if (weight > initialWeight) {
-                            weight = initialWeight; // Перевірка і обмеження ваги качки
-                        }
-                        // Тут ви також можете збільшити питність або здоров'я качки, в залежності від вашої логіки.
+                if (caterpillar.getWeight() >= foodRequired) {
+                    double foodToEat = maxFoodToEat;
+
+                    if (foodToEat <= foodRequired) {
+                        caterpillar.getEaten(this);
+                        setWeight(getWeight() + foodToEat);
+                        System.out.println(HerbivoreAnimals.Duck.getName() + " з'їв " + HerbivoreAnimals.Caterpillar.getName() + " на координатах X= " + getX() + " Y= " + getY());
                     }
                 }
             }
-        }
-
-        public double getFoodRequired() {
-            return foodRequired;
         }
     }
 
@@ -832,7 +1285,6 @@ public abstract class HerbivoreAnimals extends Animal implements Herbivore {
             this.name = name;
         }
 
-
         public static String getName() {
             return name;
         }
@@ -845,75 +1297,53 @@ public abstract class HerbivoreAnimals extends Animal implements Herbivore {
                 return null;
             }
         }
-        public void run() {
-            while (Caterpillar.weight > 0) { // Цикл працює, поки вага більше нуля
-                moveRandom();
-                Caterpillar.weight -= weightLossRate; // Втрата ваги на кожному такті
-                // Інша логіка тварини
-            }
-            die(); // Якщо вага стала нульовою або від'ємною, тварина помирає
-        }
-        public void die() {
-            System.out.println(HerbivoreAnimals.getName() + " помер.");
-            // Додаткова логіка, яку ви хочете виконати при смерті тварини
-        }
 
         public double getWeight() {
             return weight;
         }
 
+        @Override
+        public void run() {
+        }
+    }
+    private boolean eaten = false;
+
+    public boolean isEaten() {
+        return eaten;
     }
 
     public void getEaten(Duck duck) {
         if (duck != null) {
-            // Гусінь з'їдається качкою
-            duck.weight += 0.1;
-            // Тут також можна виконати іншу логіку, якщо потрібно.
+            eaten = true;
         }
     }
     public void getEaten(Mouse mouse) {
         if (mouse != null) {
-            // Гусінь з'їдається качкою
-            mouse.weight += 0.01;
-            // Тут також можна виконати іншу логіку, якщо потрібно.
+            eaten = true;
         }
     }
-    private int x; // Додайте поле для координати X
-    private int y; // Додайте поле для координати Y
-    public void moveRandom() {
-        // Додайте код для випадкового переміщення миші
-        Random random = new Random();
-        int randomX = random.nextInt(getMaxSteps() * 2 + 1) - getMaxSteps();
-        int randomY = random.nextInt(getMaxSteps() * 2 + 1) - getMaxSteps();
-        int newX = getX() + randomX;
-        int newY = getY() + randomY;
-
-        // Перевірка, щоб не виходити за межі локації
-        if (newX >= 0 && newX < Location.getWidth()) {
-            setX(newX);
-        }
-        if (newY >= 0 && newY < Location.getHeight()) {
-            setY(newY);
+    public void getEaten(Boar boar) {
+        if (boar != null) {
+            eaten = true;
         }
     }
 
-    public int getMaxSteps() {
-        return 0; // Встановіть максимальну кількість кроків, яку миша може зробити
-    }
+    private int x;
+    private int y;
 
     public int getX() {
-        return x; // Повертаємо координату X
+        return x;
     }
 
     public int getY() {
-        return y; // Повертаємо координату Y
+        return y;
     }
 
     public void setX(int x) {
-        this.x = x; // Встановлюємо координату X
+        this.x = x;
     }
 
     public void setY(int y) {
-        this.y = y; // Встановлюємо координату Y
+        this.y = y;
         }
     }

@@ -1,19 +1,13 @@
 package Organizm.Animals;
 
-import Island.Location;
-import Organizm.Plants.Plant;
-
-import java.util.List;
-import java.util.Random;
-
 public class Animal {
     private static String name;
-    static double weight; // Вага тварини, кг
-    private int maxPopulation; // Максимальна кількість тварин цього виду на одній клітинці
-    private int maxSpeed; // Швидкість переміщення, не більше ніж клітинок за хід
-    private double foodRequired; // Скільки кілограмів їжі потрібно тварині для повного насичення
-    public double weightLossRate; // Поле для швидкості втрати ваги
-    private int maxSteps; // Максимальна кількість кроків, яку тварина може зробити
+    static double weight;
+    private int maxPopulation;
+    private int maxSpeed;
+    private double foodRequired;
+    public double weightLossRate;
+    private int maxSteps;
 
     public Animal(String name, double weight, int maxPopulation, int maxSpeed, double foodRequired, int maxSteps) {
         this.name = name;
